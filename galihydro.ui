@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>galihydro</class>
+ <widget class="QMainWindow" name="galihydro">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>625</width>
+    <height>352</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>GaliHydro 0.10.0</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>1</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QTableWidget" name="StationTable">
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustIgnored</enum>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::NoEditTriggers</set>
+      </property>
+      <property name="alternatingRowColors">
+       <bool>false</bool>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SingleSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
+      </property>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>100</number>
+      </attribute>
+      <attribute name="horizontalHeaderHighlightSections">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderMinimumSectionSize">
+       <number>30</number>
+      </attribute>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderDefaultSectionSize">
+       <number>28</number>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>Station</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Code Hydro</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Cours d'eau</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Date traitement</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Heure traitement</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Date passage</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Heure passage</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Côte echelle</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Côte station</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Recalage</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Nettoyage seuil</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Commentaire</string>
+       </property>
+       <property name="textAlignment">
+        <set>AlignCenter</set>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>625</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFichier">
+    <property name="statusTip">
+     <string>Fichier</string>
+    </property>
+    <property name="title">
+     <string>Fichier</string>
+    </property>
+    <addaction name="actionSupprimer_les_parametres"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuitter"/>
+   </widget>
+   <widget class="QMenu" name="menuOutils">
+    <property name="statusTip">
+     <string>Outils</string>
+    </property>
+    <property name="title">
+     <string>Outils</string>
+    </property>
+    <addaction name="actionGerer_les_BDD"/>
+    <addaction name="actionGerer_les_stations"/>
+    <addaction name="actionGerer_les_paquets"/>
+    <addaction name="separator"/>
+    <addaction name="actionOptions"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>?</string>
+    </property>
+    <addaction name="actionA_propos"/>
+    <addaction name="actionA_propos_de_Qt"/>
+   </widget>
+   <widget class="QMenu" name="menuAffichage">
+    <property name="statusTip">
+     <string>Affichage</string>
+    </property>
+    <property name="title">
+     <string>Affichage</string>
+    </property>
+    <widget class="QMenu" name="menuStation_traiter">
+     <property name="statusTip">
+      <string>Mes stations</string>
+     </property>
+     <property name="title">
+      <string>Mes Stations</string>
+     </property>
+     <addaction name="actionIntegralite"/>
+     <addaction name="actionStations_Hors_Bulettin"/>
+     <addaction name="actionStations_myBulletin"/>
+    </widget>
+    <widget class="QMenu" name="menuColonnes">
+     <property name="title">
+      <string>Colonnes</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menuDreal">
+     <property name="statusTip">
+      <string>Stations Dreal</string>
+     </property>
+     <property name="title">
+      <string>Stations Dreal</string>
+     </property>
+     <addaction name="actionToutes_les_stations"/>
+     <addaction name="actionStations_bulettin"/>
+     <addaction name="actionNon_traitees"/>
+    </widget>
+    <widget class="QMenu" name="menuMes_paquets">
+     <property name="title">
+      <string>Mes paquets</string>
+     </property>
+    </widget>
+    <addaction name="menuColonnes"/>
+    <addaction name="separator"/>
+    <addaction name="menuStation_traiter"/>
+    <addaction name="menuDreal"/>
+    <addaction name="menuMes_paquets"/>
+    <addaction name="separator"/>
+    <addaction name="actionActualiser"/>
+   </widget>
+   <addaction name="menuFichier"/>
+   <addaction name="menuAffichage"/>
+   <addaction name="menuOutils"/>
+   <addaction name="menu"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionGerer_les_BDD">
+   <property name="text">
+    <string>Gerer les BDD...</string>
+   </property>
+   <property name="statusTip">
+    <string>Gerer les Bases de données</string>
+   </property>
+  </action>
+  <action name="actionToutes_les_stations">
+   <property name="text">
+    <string>Toutes les stations</string>
+   </property>
+   <property name="statusTip">
+    <string>Afficher les stations Dreal</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
+   </property>
+  </action>
+  <action name="actionActualiser">
+   <property name="text">
+    <string>Actualiser</string>
+   </property>
+   <property name="statusTip">
+    <string>Actualiser</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionQuitter">
+   <property name="text">
+    <string>Quitter</string>
+   </property>
+   <property name="statusTip">
+    <string>Quitter</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionA_propos">
+   <property name="text">
+    <string>A propos...</string>
+   </property>
+   <property name="statusTip">
+    <string>A propros de GaliHydro</string>
+   </property>
+  </action>
+  <action name="actionGerer_les_stations">
+   <property name="text">
+    <string>Gerer les stations...</string>
+   </property>
+   <property name="statusTip">
+    <string>Gerer les stations</string>
+   </property>
+  </action>
+  <action name="actionStations_bulettin">
+   <property name="text">
+    <string>Stations bulettin</string>
+   </property>
+   <property name="statusTip">
+    <string>Afficher les stations du bulettin Dreal</string>
+   </property>
+   <property name="shortcut">
+    <string>F8</string>
+   </property>
+  </action>
+  <action name="actionA_propos_de_Qt">
+   <property name="text">
+    <string>A propos de Qt...</string>
+   </property>
+   <property name="statusTip">
+    <string>A propos de Qt</string>
+   </property>
+  </action>
+  <action name="actionStations_myBulletin">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Bulletin</string>
+   </property>
+   <property name="statusTip">
+    <string>Afficher mes stations du bulletin</string>
+   </property>
+   <property name="shortcut">
+    <string>F3</string>
+   </property>
+  </action>
+  <action name="actionStations_Hors_Bulettin">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Hors Bulettin</string>
+   </property>
+   <property name="statusTip">
+    <string>Afficher mes stations hors bulletin</string>
+   </property>
+   <property name="shortcut">
+    <string>F2</string>
+   </property>
+  </action>
+  <action name="actionIntegralite">
+   <property name="text">
+    <string>Intégralité</string>
+   </property>
+   <property name="statusTip">
+    <string>Afficher l'intégralité de mes stations</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="actionStyle">
+   <property name="text">
+    <string>Style</string>
+   </property>
+  </action>
+  <action name="actionStation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Station</string>
+   </property>
+  </action>
+  <action name="actionCode_Hydro">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Code Hydro</string>
+   </property>
+  </action>
+  <action name="actionCours_d_eau">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Cours d'eau</string>
+   </property>
+  </action>
+  <action name="actionDate_traitement">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Date traitement</string>
+   </property>
+  </action>
+  <action name="actionDate_passage">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Date passage</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options...</string>
+   </property>
+   <property name="statusTip">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionSupprimer_les_parametres">
+   <property name="text">
+    <string>Supprimer les parametres</string>
+   </property>
+   <property name="statusTip">
+    <string>Supprimer les parametres</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Del</string>
+   </property>
+  </action>
+  <action name="actionNon_traitees">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Non traitées</string>
+   </property>
+   <property name="statusTip">
+    <string>Afficher les stations non traitées Dreal</string>
+   </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
+  </action>
+  <action name="actionGerer_les_paquets">
+   <property name="text">
+    <string>Gerer les paquets</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
