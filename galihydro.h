@@ -15,7 +15,7 @@
 #include "stationSelect.h"
 #include "groupedit.h"
 
-enum stationType {all,processing,bulletin,myAll,myProcessing,myBulletin};
+enum stationType {all,processing,bulletin,myAll,myProcessing,myBulletin,group};
 
 namespace Ui {
 class galihydro;
@@ -53,8 +53,7 @@ private slots:
     void setTimeOutDayStatus(bool status);
     void setMethod (processingMethod newMethod);
     void sortColumn (int index);
-    void loadGroup (int row);
-    void loadGroup ();
+    void loadGroup (QString groupName = NULL);
 
 private:
     //Fonctions privées
@@ -82,6 +81,7 @@ private:
     QDate processingDate;
     processingMethod method;
     bool adminMode;
+    QVector<QString> groupStations;
 };
 
 #endif // GALIHYDRO_H

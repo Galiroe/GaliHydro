@@ -34,8 +34,7 @@ private slots:
 
 private:
     Ui::groupedit *ui;
-    int currentGroup;
-    int groupCount;
+//    int currentGroup;
 };
 
 #endif // GROUPEDIT_H

@@ -34,6 +34,9 @@
    </property>
    <item>
     <widget class="QTabWidget" name="generalTab">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -282,6 +285,9 @@
       </layout>
      </widget>
      <widget class="QWidget" name="adminTab">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <attribute name="title">
        <string>Gestionnaire</string>
       </attribute>

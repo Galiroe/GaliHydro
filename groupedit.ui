@@ -74,6 +74,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="pushButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Monter</string>
            </property>
@@ -81,6 +84,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Descendre</string>
            </property>

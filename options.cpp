@@ -1,5 +1,6 @@
 #include "options.h"
 #include "ui_options.h"
+#include "QShortcut"
 
 #include <QColorDialog>
 
@@ -18,12 +19,21 @@
 
 //Mise en garde de perte du mdp dans deladminslot ?
 
+// Construire et detruire l'onglet admin. Le camouflage et desactivation engendre des bug d'affichage sur les autres onglets et l'entete de l'onglet reste present
+
 
 options::options(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::options)
 {
     ui->setupUi(this);
+
+    //Recuperation de l'onglet adminTab puis suppression
+    adminTab = ui->generalTab->widget(2);
+    ui->generalTab->removeTab(2);
+
+    //Raccourcis clavier pour creation/suppression dde l'onglet adminTab
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_G), this, SLOT(adminTabActivation()));
 
     //Variable globale : fichier ini
     QSettings settings ("GaliHydro.ini", QSettings::IniFormat);
@@ -300,6 +310,15 @@ void options::acceptParam()
     }
 
     emit refreshTable ();
+}
+
+//Insert ou supprime l'onglet adminTab
+void options::adminTabActivation()
+{
+    if (ui->generalTab->count() == 2)
+        ui->generalTab->insertTab(2, adminTab, "Gestionnaire");
+    else
+        ui->generalTab->removeTab(2);
 }
 
 //Destructeur

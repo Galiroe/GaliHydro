@@ -37,10 +37,13 @@
 #define SEL_DEBUT "NOSPY"
 #define SEL_FIN "NOFLIC"
 
+//Regler crash si tentative d'afficher le lastGroup au demmarrage alors qu'il n'y a aucun lastGroup
+//Finir ajout fonction de selection et d'affichage des paquets
 //Afficher dernier paquet utilisé a l'ouverture comme "mes stations, stations dreal..."
-//Actualiser le mode admin ou non apres modif mdp + apres modif paquets
+//Actualiser le mode admin ou non apres modif mdp + apres modif paquets (dont affichage de l'option paquet)
 //relier signal changement de method
 //creer classe de haschage
+//Trouver meilleurs methode pour suppression menu "mes paquetes" si non gestonnaire
 
 //void QHeaderView::setSectionResizeMode(ResizeMode mode)
 //QHeaderView::ResizeToContents
@@ -61,7 +64,7 @@ galihydro::galihydro(QWidget *parent) :
     //Initialisation de la date actuelle
     currentDate = QDate::currentDate();
 
-    //Recuperation de la du delai entre deux traitements de du status de l'option
+    //Recuperation du delai entre deux traitements de du status de l'option
     timeOutDay = settings.value ("TimeOutDay/Value",45).toInt();
     timeOutDayStatus = settings.value ("TimeOutDay/Enabled",true).toBool();
 
@@ -84,8 +87,10 @@ galihydro::galihydro(QWidget *parent) :
         ui->actionGerer_les_paquets->setVisible(false);
         ui->actionGerer_les_paquets->setEnabled(false);
 
-        ui->menuMes_paquets->setVisible(false);
-        ui->menuMes_paquets->setEnabled(false);
+        //Suppresion du menu Mes paquets
+        delete ui->menuMes_paquets;
+//        ui->menuMes_paquets->setVisible(false);
+//        ui->menuMes_paquets->setEnabled(false);
     }
     else{
         getGroupName ();
@@ -219,9 +224,6 @@ galihydro::galihydro(QWidget *parent) :
     QObject::connect(NettoyageSeuil, SIGNAL(mTriggered (bool, int)), this, SLOT(hideColumn (bool, int)));
     QObject::connect(Commentaire, SIGNAL(mTriggered (bool, int)), this, SLOT(hideColumn (bool, int)));
 
-    //Creation et affichage du tableau de station
-    refresh();
-
     //Connection signaux/slots
     QObject::connect(ui->actionGerer_les_BDD, SIGNAL(triggered()), this, SLOT(ouvrirBddDir()));
     QObject::connect(ui->actionOptions, SIGNAL(triggered()), this, SLOT(ouvrirOptions()));
@@ -239,6 +241,9 @@ galihydro::galihydro(QWidget *parent) :
     QObject::connect(ui->actionQuitter, SIGNAL(triggered()), qApp, SLOT(quit()));
     QObject::connect(ui->actionA_propos, SIGNAL(triggered()), this, SLOT(ouvrirAPrpops()));
     QObject::connect(ui->StationTable->horizontalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(sortColumn (int)));
+
+    //Creation et affichage du tableau de station
+    refresh();
 }
 
 //Enregistre la taille de la fenetre si modification
@@ -409,7 +414,7 @@ void galihydro::showStations (enum stationType stationType)
     //Connexion a la base BAREME et recuperation des elements
     db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ="+baremeDir);
     if(db.open()) {
-        if (stationType == myAll || stationType == bulletin || stationType == myBulletin || stationType == myProcessing) {
+        if (stationType == myAll || stationType == bulletin || stationType == myBulletin || stationType == myProcessing  || stationType == group) {
             ui->StationTable->clearContents();
             ui->StationTable->setRowCount(0);
             QString myStations;
@@ -441,11 +446,19 @@ void galihydro::showStations (enum stationType stationType)
                 }
                 settings.setValue("ShowOption/Last","myBulletin");
             }
+            else if (stationType == group){
+                    for (int i=0;i<groupStations.count();i++) {
+                        myStations.append(groupStations[i]+";");
+                    }
+                    qDebug () << "Paquet a afficher :" << myStations;
+                    settings.setValue("ShowOption/Last","group");
+            }
             else {
                 myStations = settings.value("Bulletin/CodeHydro").toString();
                 settings.setValue("ShowOption/Last","bulletin");
             }
 
+            //Récuperation des données de la base Bareme
             int i = 0;
             while (myStations.contains(regExCodeHydro)) {
                 QString currentStation = regExCodeHydro.cap(0);
@@ -691,6 +704,9 @@ void galihydro::refresh ()
         showStations (myProcessing);
     else if (settings.value("ShowOption/Last").toString()== "myBulletin")
         showStations (myBulletin);
+    else if (settings.value("ShowOption/Last").toString()== "group") {
+        loadGroup (settings.value("ShowOption/LastGroup").toString());
+    }
     else
         showStations (all);
 }
@@ -865,56 +881,33 @@ bool galihydro::getConfigMode ()
     return adminMode;
 }
 
-//Creation du menu d'acce aux paquets
+//Creation du menu d'acces aux paquets
 void galihydro::getGroupName ()
 {
-    int groupCount = 0;
-    int currentGroup = 0;
     //Variable globale : fichier ini
     QSettings settings("GaliHydro.ini", QSettings::IniFormat);
 
-    //Recuperation des stations bulletin/traitement
-    QRegExp regExGroup("^([a-zA-Z0-9]+)\\[(([A-Z][0-9]{7};)+)\\]$");
-
-    QString group;
-    QString groupName;
+    //Recuperation des stations
+    QString stations;
+    QStringList groupsNames;
 
     //Recuperation du nombre de groupe et du groupe courrant
-    QRegExp regExGroupNumbers("^([0-9]+);([0-9]+)$");
-    QString groupNumbers = settings.value("Group/numbers").toString();
-
-    if (groupNumbers.contains(regExGroupNumbers))
-    {
-        groupCount = regExGroupNumbers.cap(1).toInt();
-        currentGroup = regExGroupNumbers.cap(2).toInt();
-    }
-    else
-        qDebug ("echec regex group numbers");
+    settings.beginGroup("Group");
+    groupsNames = settings.childKeys();
+    settings.endGroup();
 
     //Boucle de creation/affichage de l'ensemble des groupes
-    for (int g=0;g<groupCount;g++)
-    {
-        group.clear();
-        groupName.clear();
+    for (int g=0;g<groupsNames.count();g++) {
+        stations.clear();
 
-        group = settings.value("Group/G"+QString::number(g)).toString();
-        if (group.contains(regExGroup))
-        {
-            groupName = regExGroup.cap(1);
-
-            //Ajout du menu de groupe
-            ui->menuMes_paquets->addAction(groupName);
-//            ui->menuMes_paquets->addAction(new MQAction(groupName));
-        }
-        else
-            qDebug ("echec regex group");
+        stations = settings.value("Group/"+groupsNames.at(g)).toString();
+        ui->menuMes_paquets->addAction(groupsNames.at(g));
     }
 
     //Attribution des caracteristiques et connection !
     QList<QAction *> QActionGroupList = ui->menuMes_paquets->findChildren<QAction *>();
-//    QList<MQAction *> QActionGroupList = ui->menuMes_paquets->findChildren<MQAction *>();
     int groupNumber = QActionGroupList.size();
-     qDebug () << "taille : "<<QString::number(groupNumber);
+    qDebug () << "taille : "<<QString::number(groupNumber);
     if (groupNumber>=1){
         QActionGroupList.removeAt(0);
         groupNumber--;
@@ -922,36 +915,37 @@ void galihydro::getGroupName ()
     for (int h=0;h<groupNumber;h++)
     {
         qDebug () << "connect this action : " << QActionGroupList[h] << " : "<< QActionGroupList[h]->text();
-
-//        QActionGroupList[h]->setCheckable(true);
-//        columnState = settings.value ("Column/"+QString::number(c_nomStation),true).toBool();
-//        QActionGroupList[h]->setChecked(columnState);
-
-//        QActionGroupList[h]->setColumn (h);
-//        QObject::connect(QActionGroupList[h], SIGNAL(mTriggered (int)), this, SLOT(loadGroup (int)));
-
-        QActionGroupList[h]->setCheckable(true);
-        if (h==currentGroup)
-            QActionGroupList[h]->setChecked(true);
-        else
-            QActionGroupList[h]->setChecked(false);
         QObject::connect(QActionGroupList[h], SIGNAL(triggered ()), this, SLOT(loadGroup ()));
     }
 }
 
 
-//Inutile si non relier a une mqaction !
-void galihydro::loadGroup (int row)
+//Renvoie la liste des codes hydros du paquet suivant le QAction emmeteur du signal. Si erreur renvoie une liste vide
+void galihydro::loadGroup (QString groupName)
 {
-    qDebug () <<"Action groupe recut !!! " << "ligne : "<<QString::number(row);
-}
+    groupStations.clear();
+    QString stations;
+    QSettings settings("GaliHydro.ini", QSettings::IniFormat);
+    QRegExp regExCodeHydro("[A-Z][0-9]{7}");
 
-void galihydro::loadGroup ()
-{
-    QAction* action = qobject_cast<QAction* >(sender());
-    qDebug () <<"Action groupe recut de "<< action->text();
 
-    //rechercher l'action avec son text ! check et decheck les action au passage !
+    //Recuperation du QAction emmeteur
+    if (!groupName.isNull() && !groupName.isEmpty()){
+        stations = settings.value("Group/"+groupName).toString();
+    }
+    else {
+        QAction* action = qobject_cast<QAction* >(sender());
+        qDebug () <<"Action groupe recut de "<< action->text();
+        //Recuperation des données du paquet par son nom
+        stations = settings.value("Group/"+action->text()).toString();
+        settings.setValue("ShowOption/LastGroup",action->text());
+    }
+        //On cree le tableau de code hydro
+        while (stations.contains(regExCodeHydro)) {
+            groupStations.append(regExCodeHydro.cap(0));
+            stations.remove(0,9);
+        }
+    showStations(group);
 }
 
 galihydro::~galihydro()

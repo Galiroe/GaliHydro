@@ -3,13 +3,14 @@
 
 #include<QDebug>
 
+//Suite suppresion nom du groupe apres le "=" et ainsi les regex associé => A faire egalement dans galihydro.cpp
+//Empecher le tri autmoatique des paquet par ordre alhpabetique
 //Ne pas afficher les stations dans la liste si aucun groupe créé
 //Faire avertissement quand cancel et pour fermer
 //Attention nom de paquet => regex ne tolere pas les caractere speciaux
 //Comprendre pourquoi lors de suppression d'un paquet il reste toujours le dernier groupe vide malgres remove ! idem, reste groupe numbers pour un remove total !
 //Gerer les boutons monter et descendre
 //Gerer l'enregistrement des paquets multiples : plusieurs paquets modifier, deselection d'un paquet sans etre enregistré (dans signal change row avec variable enregistrer type bool)...
-//Pour l'affichage : verifier que le nombre de groupe dans ini soit correct (exemple groupNumbers=2 et seulement 1 groupe reellement trouvé ou inversement)
 //Amelioration possible : Charger les groupe dans tableau pour eviter les acces a la base pour chaque changement !
 
 groupedit::groupedit(QWidget *parent) :
@@ -18,69 +19,35 @@ groupedit::groupedit(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    currentGroup = 0;
-    groupCount = 0;
     //Variable globale : fichier ini
     QSettings settings("GaliHydro.ini", QSettings::IniFormat);
 
-    QString baremeDir = settings.value("BDD/bareme","C://").toString();
-    QString localeDir = settings.value("BDD/locale","C://").toString();
-    QString terrainDir = settings.value("BDD/terrain","C://").toString();
-
     //Recuperation des stations bulletin/traitement
     QRegExp regExCodeHydro("[A-Z][0-9]{7}");
-    QRegExp regExGroup("^([a-zA-Z0-9]+)\\[(([A-Z][0-9]{7};)+)\\]$");
-//    QRegExp regExGroup("((.+)\\[(([A-Z][0-9]{7};)+)\\]");
-//        regExGroup.setMinimal(false);  
-
 
     QString stations;
-    QString group;
     QString groupName;
     QVector<QString> groupStations;
 
-    //Recuperation du nombre de groupe et du groupe courrant
-    QRegExp regExGroupNumbers("^([0-9]+);([0-9]+)$");
-    QString groupNumbers = settings.value("Group/numbers").toString();
-
-    if (groupNumbers.contains(regExGroupNumbers))
-    {
-        groupCount = regExGroupNumbers.cap(1).toInt();
-        currentGroup = regExGroupNumbers.cap(2).toInt();
-    }
-    else
-        qDebug ("echec regex group numbers");
+    //Recuperation du nombre de groupe et de leur nom
+    QStringList groupsNames;
+    settings.beginGroup("Group");
+    groupsNames = settings.childKeys();
+    qDebug () << "childKeys" <<settings.childKeys();
+    settings.endGroup();
 
     //Boucle de creation/affichage de l'ensemble des groupes
-    for (int g=0;g<groupCount;g++)
-    {
-        stations.clear();
-        group.clear();
-        groupName.clear();
-        groupStations.clear();
-
-        group = settings.value("Group/G"+QString::number(g)).toString();
-        if (group.contains(regExGroup))
-        {
-            groupName = regExGroup.cap(1);
-            qDebug ()<<groupName;
-            stations = regExGroup.cap(2);
-            qDebug ()<<stations;
+    for (int g=0;g<groupsNames.count();g++) {
+        groupName =groupsNames.at(g);
+        stations = settings.value("Group/"+groupName).toString();
             while (stations.contains(regExCodeHydro)) {
                 groupStations.append(regExCodeHydro.cap(0));
                 stations.remove(0,9);
-            }
+        }
             QListWidgetItem *newGroup = new QListWidgetItem (groupName);
             ui->groupList->addItem(newGroup);
             ui->groupList->setCurrentItem (newGroup);
-        }
-        else
-            qDebug ("echec regex group");
     }
-
-    //Conservé l'affichage du groupe courant ???
-    loadGroup(currentGroup);
-    ui->groupList->setCurrentRow(currentGroup);
 
 
     QObject::connect(ui->addGroupButton,SIGNAL(clicked()),this,SLOT(addGroup()));
@@ -98,36 +65,25 @@ void groupedit::loadGroup (int currentRow)
     //Variable globale : fichier ini
     QSettings settings("GaliHydro.ini", QSettings::IniFormat);
 
+    //Adresses des differentes BDD
     QString baremeDir = settings.value("BDD/bareme","C://").toString();
     QString localeDir = settings.value("BDD/locale","C://").toString();
     QString terrainDir = settings.value("BDD/terrain","C://").toString();
 
     //Recuperation des stations bulletin/traitement
     QRegExp regExCodeHydro("[A-Z][0-9]{7}");
-    QRegExp regExGroup("^([a-zA-Z0-9]+)\\[(([A-Z][0-9]{7};)+)\\]$");
 
     QVector<QString> VcodeHydro (0);
     QVector<int> Vnosta (0);
     QString stations;
-    QString group;
-    QString groupName;
     QVector<QString> groupStations;
     QVector<QString> ignoredStations;
 
-    group = settings.value("Group/G"+QString::number(currentRow)).toString();
-    if (group.contains(regExGroup))
-    {
-        groupName = regExGroup.cap(1);
-        qDebug ()<<groupName;
-        stations = regExGroup.cap(2);
-        qDebug ()<<stations;
+    stations = settings.value("Group/"+ui->groupList->item(currentRow)->text()).toString();
         while (stations.contains(regExCodeHydro)) {
             groupStations.append(regExCodeHydro.cap(0));
             stations.remove(0,9);
         }
-    }
-    else
-        qDebug ("echec regex group");
 
     stations = settings.value("Ignored/CodeHydro").toString();
     while (stations.contains(regExCodeHydro)) {
@@ -231,35 +187,13 @@ void groupedit::dellGroup ()
     QSettings settings("GaliHydro.ini", QSettings::IniFormat);
 
     int currentRow = ui->groupList->currentRow ();
-    ui->groupList->takeItem(currentRow);
-    settings.remove("Group/G"+QString::number(currentRow));
-
-    //Cas ou le dernier groupe est supprimé
-    if (groupCount==1){
-        settings.remove("Group");
-    }
-    else {
-        for (int i=currentRow;i<groupCount;i++){
-            QString group = settings.value("Group/G"+QString::number(i+1)).toString();
-            settings.setValue("Group/G"+QString::number(i),group);
-            settings.remove("Group/G"+QString::number(i+1));
-        }
-        //Mise a jour du nombre de paquet
-        groupCount--;
-        //Si paquet courrant est supprimé, attribution du paquet precedent si ce n'est pas deja le premier sinon on le conserve
-        if (currentRow==currentGroup && currentGroup!=0){
-            currentGroup--;
-        }
-    }
-    settings.setValue("Group/numbers",QString::number(groupCount)+";"+QString::number(currentGroup));
+    QString itemName = ui->groupList->takeItem(currentRow)->text();
+    settings.remove("Group/"+itemName);
 }
 
 void groupedit::saveGroup ()
 {
     QSettings settings("GaliHydro.ini", QSettings::IniFormat);
-
-    groupCount = ui->groupList->count();
-    settings.setValue("Group/numbers",QString::number(groupCount)+";"+QString::number(currentGroup));
 
     QString stationCheckedP ("");
     QString stationCheckedI ("");
@@ -273,10 +207,8 @@ void groupedit::saveGroup ()
 
         int currentRow = ui->groupList->currentRow ();
         QString groupName = ui->groupList->item(currentRow)->text();
-        QString group ("");
-        group = groupName+"["+stationCheckedP+"]";
 
-        settings.setValue("Group/G"+QString::number(currentRow),group);
+        settings.setValue("Group/"+groupName,stationCheckedP);
         settings.setValue("Ignored/CodeHydro",stationCheckedI);
     }
 

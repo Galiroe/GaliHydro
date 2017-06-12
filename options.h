@@ -41,6 +41,7 @@ private slots:
     void echoChange (bool echoMode);
     void checkAdminSlot();
     void delAdminSlot();
+    void adminTabActivation();
 
 private:
     int tolerance;
@@ -56,6 +57,7 @@ private:
     QColor colorTimeOutDay;
     Ui::options *ui;
     processingMethod method;
+    QWidget *adminTab;
 };
 
 #endif // OPTIONS_H
