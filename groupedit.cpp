@@ -92,16 +92,17 @@ void groupedit::loadGroup (int currentRow)
     }
 
     QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
-    QSqlQuery querySelect;
 
+    //Connexion a la base TERRAIN et recuperation des elements stations
     db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ="+baremeDir);
     if(db.open()) {
-        querySelect.exec("SELECT nosta, codehydro, nom FROM station ORDER BY codehydro;");
+        QSqlQuery queryBareme;
+        queryBareme.exec("SELECT nosta, codehydro, nom FROM station ORDER BY codehydro;");
         int i = 0;
-        while (querySelect.next()) {
-            int nosta = querySelect.value(0).toInt();
-            QString codeHydro = querySelect.value(1).toString();
-            QString nomStation = querySelect.value(2).toString().replace("_"," ").toUpper();
+        while (queryBareme.next()) {
+            int nosta = queryBareme.value(0).toInt();
+            QString codeHydro = queryBareme.value(1).toString();
+            QString nomStation = queryBareme.value(2).toString().replace("_"," ").toUpper();
             Vnosta.append(nosta);
             VcodeHydro.append(codeHydro);
 
@@ -131,41 +132,43 @@ void groupedit::loadGroup (int currentRow)
 
             i++;
         }
+        queryBareme.clear ();
+        db.close();
     }
-    querySelect.clear ();
-    db.close();
 
     //Connexion a la base LOCALE pour elimination des stations inutiles
     db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ="+localeDir);
     if (db.open()) {
+        QSqlQuery queryBDLocale;
         int compteur = 0;
         for (int i=0;i<VcodeHydro.size();i++) {
-            querySelect.exec("SELECT * FROM "+VcodeHydro[i]);
-            if (!querySelect.next()) {
+            queryBDLocale.exec("SELECT * FROM "+VcodeHydro[i]);
+            if (!queryBDLocale.next()) {
                 ui->selectTable->removeRow(compteur);
                 Vnosta.remove(compteur);
                 compteur--;
             }
             compteur++;
         }
-        querySelect.clear();
+        queryBDLocale.clear();
         db.close();
     }
 
     //Connexion a la base TERRAIN  pour elimination des stations inutiles
     db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ="+terrainDir);
     if (db.open()) {
+        QSqlQuery queryTerrain;
         int compteur = 0;
         for (int i=0;i<Vnosta.size();i++) {
-            querySelect.exec("SELECT * FROM `Passages(Tp)` WHERE `nosta`="+QString::number(Vnosta[i])+";");
-            if (!querySelect.next()) {
+            queryTerrain.exec("SELECT * FROM `Passages(Tp)` WHERE `nosta`="+QString::number(Vnosta[i])+";");
+            if (!queryTerrain.next()) {
                 ui->selectTable->removeRow(compteur);
                 VcodeHydro.remove(compteur);
                 compteur--;
             }
             compteur++;
         }
-        querySelect.clear();
+        queryTerrain.clear();
         db.close();
     }
 }

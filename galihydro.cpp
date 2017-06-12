@@ -381,7 +381,6 @@ void galihydro::showStations (enum stationType stationType)
     QString terrainDir = settings.value("BDD/terrain","C://").toString();
     QString baremeDir = settings.value("BDD/bareme","C://").toString();
     QString localeDir = settings.value("BDD/locale","C://").toString();
-    QSqlQuery query;
 
     //Recuperation des stations bulletin/traitement
     QString stations;
@@ -393,27 +392,25 @@ void galihydro::showStations (enum stationType stationType)
     while (stations.contains(regExCodeHydro)) {
         processingStations.append(regExCodeHydro.cap(0));
         stations.remove(0,9);
-//        stations.remove(regExCodeHydro.cap(0));
     }
 
     stations = settings.value("Bulletin/CodeHydro").toString();
     while (stations.contains(regExCodeHydro)) {
         bulletinStations.append(regExCodeHydro.cap(0));
         stations.remove(0,9);
-//        stations.remove(regExCodeHydro.cap(0));
     }
 
     stations = settings.value("Ignored/CodeHydro").toString();
     while (stations.contains(regExCodeHydro)) {
         ignoredStations.append(regExCodeHydro.cap(0));
         stations.remove(0,9);
-        //        stations.remove(regExCodeHydro.cap(0));
     }
 
 
     //Connexion a la base BAREME et recuperation des elements
     db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ="+baremeDir);
     if(db.open()) {
+        QSqlQuery queryBareme;
         if (stationType == myAll || stationType == bulletin || stationType == myBulletin || stationType == myProcessing  || stationType == group) {
             ui->StationTable->clearContents();
             ui->StationTable->setRowCount(0);
@@ -464,12 +461,11 @@ void galihydro::showStations (enum stationType stationType)
                 QString currentStation = regExCodeHydro.cap(0);
                 VcodeHydro.append(currentStation);
                 myStations.remove(0,9);
-//                stations.remove(regExCodeHydro.cap(0));
-                query.exec("SELECT nosta, nom, courdo FROM station WHERE codehydro='"+currentStation+"'");
-                if (query.next()) {
-                    Vnosta.append(query.value(0).toInt());
+                queryBareme.exec("SELECT nosta, nom, courdo FROM station WHERE codehydro='"+currentStation+"'");
+                if (queryBareme.next()) {
+                    Vnosta.append(queryBareme.value(0).toInt());
 
-                    createRow (i,currentStation,query.value(1).toString(),query.value(2).toString());
+                    createRow (i,currentStation,queryBareme.value(1).toString(),queryBareme.value(2).toString());
                     i++;
                 }
             }
@@ -478,23 +474,14 @@ void galihydro::showStations (enum stationType stationType)
             ui->StationTable->clearContents();
             ui->StationTable->setRowCount(0);
             settings.setValue("ShowOption/Last","all");
-            query.exec("SELECT nosta, codehydro, nom, courdo FROM station ORDER BY codehydro;");
+            queryBareme.exec("SELECT nosta, codehydro, nom, courdo FROM station ORDER BY codehydro;");
             int i = 0;
-            while (query.next()) {
-//Test bug caracteres speciaux
-//                qDebug ()<< query.value(2);
-//                qDebug () << (query.value(3)).swap(QString);
-//                qDebug () << (query.value(3)).toByteArray(); //echec
-//                qDebug () << (query.value(3)).toBitArray();
-//                qDebug () << query.value(3).toString().normalized(QString::NormalizationForm_KC); //echec
-//                QVariant::swap(QVariant & other)
+            while (queryBareme.next()) {
 
-//Fin test bug caracteres speciaux
-
-                int nosta = query.value(0).toInt();
-                QString codeHydro = query.value(1).toString();
-                QString nomStation = query.value(2).toString();
-                QString courEau = query.value(3).toString();
+                int nosta = queryBareme.value(0).toInt();
+                QString codeHydro = queryBareme.value(1).toString();
+                QString nomStation = queryBareme.value(2).toString();
+                QString courEau = queryBareme.value(3).toString();
 
                 VcodeHydro.append(codeHydro);
                 Vnosta.append(nosta);
@@ -503,21 +490,22 @@ void galihydro::showStations (enum stationType stationType)
                 i++;
             }
         }
-        query.clear();
+        queryBareme.clear();
         db.close();
     }
 
-    //Connexion a la base TERRAIN et recuperation des elements
+    //Connexion a la base TERRAIN et recuperation des elements stations
     db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ="+terrainDir);
     if (db.open()) {
+        QSqlQuery queryTerrain;
         int compteur (0);
         for (int i=0;i<Vnosta.size();i++) {
             QString requete ="SELECT TOP 1 `dat_pas`,`he_sta`,`cot_ech`,`cot_sta`,`recal`,`nett_seuil`,`obs` FROM `Passages(Tp)` WHERE `nosta`="+QString::number(Vnosta[i])+" ORDER BY `dat_pas` DESC;";
-            query.exec(requete);
+            queryTerrain.exec(requete);
 
-            if (query.next()) {
+            if (queryTerrain.next()) {
                 //Date de passage station
-                QString dateP = query.value(0).toString();
+                QString dateP = queryTerrain.value(0).toString();
                 QDate datePa;
                 if (dateP.contains(regDateTime)){
                     datePa.setDate(regDateTime.cap(1).toInt()+2000,regDateTime.cap(2).toInt(),regDateTime.cap(3).toInt());
@@ -527,23 +515,23 @@ void galihydro::showStations (enum stationType stationType)
                     ui->StationTable->setItem(compteur,c_datePassage,item_datePassage);
                 }
                 //Heure station
-                QString timePa = query.value(1).toString();
+                QString timePa = queryTerrain.value(1).toString();
                 if (timePa.contains(regDateTime)){
                     timePa = regDateTime.cap(4);
                     QTableWidgetItem *item_timePassage = new QTableWidgetItem(timePa);
                     ui->StationTable->setItem(compteur,c_heurePassage,item_timePassage);
                 }
                 //Cote echelle
-                float coteEchelle = query.value(2).toFloat();
+                float coteEchelle = queryTerrain.value(2).toFloat();
                 QTableWidgetItem *item_coteEchelle = new QTableWidgetItem(QString::number(coteEchelle));
                 ui->StationTable->setItem(compteur,c_coteEchelle,item_coteEchelle);
                 //Cote station
-                float coteStation= query.value(3).toFloat()/10;
+                float coteStation= queryTerrain.value(3).toFloat()/10;
                 QTableWidgetItem *item_coteStation = new QTableWidgetItem(QString::number(coteStation));
                 ui->StationTable->setItem(compteur,c_coteStation,item_coteStation);
 
                 //Recalage station
-                bool recalage = query.value(4).toBool();
+                bool recalage = queryTerrain.value(4).toBool();
                 QTableWidgetItem *item_CheckRecalage = new QTableWidgetItem("");
                 item_CheckRecalage->setFlags(item_CheckRecalage->flags()|Qt::ItemIsUserCheckable);
                 if (recalage)
@@ -553,7 +541,7 @@ void galihydro::showStations (enum stationType stationType)
                 ui->StationTable->setItem(compteur,c_recalage,item_CheckRecalage);
 
                 //Nettoyage seuil
-                bool netSeuil = query.value(5).toBool();
+                bool netSeuil = queryTerrain.value(5).toBool();
                 QTableWidgetItem *item_CheckNetSeuil = new QTableWidgetItem("");
                 item_CheckNetSeuil->setFlags(item_CheckNetSeuil->flags()|Qt::ItemIsUserCheckable);
                 if (netSeuil)
@@ -563,7 +551,7 @@ void galihydro::showStations (enum stationType stationType)
                 ui->StationTable->setItem(compteur,c_NetSeuil,item_CheckNetSeuil);
 
                 //Commentaire
-                QString comment = query.value(6).toString();
+                QString comment = queryTerrain.value(6).toString();
                 QTableWidgetItem *item_comment = new QTableWidgetItem(comment);
                 ui->StationTable->setItem(compteur,c_comment,item_comment);
                 compteur++;
@@ -575,7 +563,7 @@ void galihydro::showStations (enum stationType stationType)
                 VcodeHydro.remove(compteur);
             }
         }
-        query.clear();
+        queryTerrain.clear();
         db.close();
     }
 
@@ -583,17 +571,18 @@ void galihydro::showStations (enum stationType stationType)
     nbStation = VcodeHydro.size();
     db.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ="+localeDir);
     if (db.open()) {
+        QSqlQuery queryBDLocale;
         int compteur = 0;
         for (int i=0;i<nbStation;i++) {
 
-            query.exec("SELECT MAX(date) FROM "+VcodeHydro[i]);
+            queryBDLocale.exec("SELECT MAX(date) FROM "+VcodeHydro[i]);
             QDate datePas = (ui->StationTable->item(compteur,c_datePassage))->data(0).toDate();
 
             if (ignoredStations.contains(VcodeHydro[i])) {
                 ui->StationTable->removeRow(compteur);
             }
-            else if (query.next() && !datePas.isNull() ) {
-                QString dateTraitementString = query.value(0).toString();
+            else if (queryBDLocale.next() && !datePas.isNull() ) {
+                QString dateTraitementString = queryBDLocale.value(0).toString();
                 QString heureTraitement;
                 QDate dateTraitement;
                 QDate dateComp;
@@ -680,7 +669,7 @@ void galihydro::showStations (enum stationType stationType)
                 ui->StationTable->removeRow(compteur);
             }
         }
-        query.clear();
+        queryBDLocale.clear();
         db.close();
     }
     statusMessage->setText("A traiter : "+QString::number(cpteBulletin)+" Bulletins et "+QString::number(cpteProcessing)+" classiques dont "+QString::number(cpteTimeOutDay)+" urgents");
@@ -920,7 +909,7 @@ void galihydro::getGroupName ()
 }
 
 
-//Renvoie la liste des codes hydros du paquet suivant le QAction emmeteur du signal. Si erreur renvoie une liste vide
+//SLOT :Renvoie la liste des codes hydros du paquet suivant le QAction emmeteur du signal. Si erreur renvoie une liste vide
 void galihydro::loadGroup (QString groupName)
 {
     groupStations.clear();
