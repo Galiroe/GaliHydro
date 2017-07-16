@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>578</width>
-    <height>609</height>
+    <width>575</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,6 +20,9 @@
    <item>
     <widget class="QTableWidget" name="selectTable">
      <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="sortingEnabled">
       <bool>true</bool>
      </property>
      <property name="rowCount">

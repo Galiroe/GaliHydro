@@ -14,6 +14,7 @@
 #include "options.h"
 #include "stationSelect.h"
 #include "groupedit.h"
+#include "corth.h"
 
 enum stationType {all,processing,bulletin,myAll,myProcessing,myBulletin,group};
 
@@ -37,6 +38,7 @@ private slots:
     void gestionStations ();
     void gestionGroups ();
     void ouvrirAPrpops ();
+    void openCorth();
     void stationsProcessing ();
     void stationsBulletin ();
     void stationsMyProcessing ();

@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     bdd_singleton.cpp \
     mqaction.cpp \
     apropos.cpp \
-    groupedit.cpp
+    groupedit.cpp \
+    corth.cpp
 
 HEADERS  += galihydro.h \
     bdddir.h \
@@ -30,14 +31,16 @@ HEADERS  += galihydro.h \
     bdd_singleton.h \
     mqaction.h \
     apropos.h \
-    groupedit.h
+    groupedit.h \
+    corth.h
 
 FORMS    += galihydro.ui \
     bdddir.ui \
     stationselect.ui \
     options.ui \
     apropos.ui \
-    groupedit.ui
+    groupedit.ui \
+    corth.ui
 
 RC_FILE += \
     ressources.rc

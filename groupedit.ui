@@ -30,6 +30,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
        <attribute name="verticalHeaderStretchLastSection">
         <bool>false</bool>
        </attribute>

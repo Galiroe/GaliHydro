@@ -50,6 +50,9 @@
       <property name="selectionBehavior">
        <enum>QAbstractItemView::SelectRows</enum>
       </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
       <attribute name="horizontalHeaderDefaultSectionSize">
        <number>100</number>
       </attribute>
@@ -252,6 +255,8 @@
     <addaction name="menuStation_traiter"/>
     <addaction name="menuDreal"/>
     <addaction name="menuMes_paquets"/>
+    <addaction name="separator"/>
+    <addaction name="actionCorth"/>
     <addaction name="separator"/>
     <addaction name="actionActualiser"/>
    </widget>
@@ -465,6 +470,11 @@
   <action name="actionGerer_les_paquets">
    <property name="text">
     <string>Gerer les paquets</string>
+   </property>
+  </action>
+  <action name="actionCorth">
+   <property name="text">
+    <string>Corth...</string>
    </property>
   </action>
  </widget>

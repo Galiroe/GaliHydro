@@ -37,19 +37,16 @@
 #define SEL_DEBUT "NOSPY"
 #define SEL_FIN "NOFLIC"
 
+
 //Regler crash si tentative d'afficher le lastGroup au demmarrage alors qu'il n'y a aucun lastGroup
 //Finir ajout fonction de selection et d'affichage des paquets
 //Afficher dernier paquet utilisé a l'ouverture comme "mes stations, stations dreal..."
 //Actualiser le mode admin ou non apres modif mdp + apres modif paquets (dont affichage de l'option paquet)
-//relier signal changement de method
 //creer classe de haschage
 //Trouver meilleurs methode pour suppression menu "mes paquetes" si non gestonnaire
 
-//void QHeaderView::setSectionResizeMode(ResizeMode mode)
-//QHeaderView::ResizeToContents
-
 //Alerté de l'echec de recuperation du nom utilisateur dans param environnement ? (getconfigmode)
-//Mode administrateur ou gestionnaire ?
+//Mode en cours : administrateur ou gestionnaire ?
 
 galihydro::galihydro(QWidget *parent) :
     QMainWindow(parent),
@@ -236,6 +233,7 @@ galihydro::galihydro(QWidget *parent) :
     QObject::connect(ui->actionStations_Hors_Bulettin, SIGNAL(triggered()), this, SLOT(stationsMyProcessing()));
     QObject::connect(ui->actionStations_myBulletin, SIGNAL(triggered()), this, SLOT(stationsMyBulletin ()));
     QObject::connect(ui->actionActualiser, SIGNAL(triggered()), this, SLOT(refresh()));
+    QObject::connect(ui->actionCorth, SIGNAL(triggered()), this, SLOT(openCorth()));
     QObject::connect(ui->actionA_propos_de_Qt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     QObject::connect(ui->actionSupprimer_les_parametres, SIGNAL(triggered()), this, SLOT(delParam()));
     QObject::connect(ui->actionQuitter, SIGNAL(triggered()), qApp, SLOT(quit()));
@@ -770,44 +768,27 @@ void galihydro::hideColumn (bool checked, int column)
     }
 }
 
-//SLOT : Trie la colonne d'index 'index' et affecte un caractere materialisant le sens montant/descendant
+//SLOT : Sauvegarde dans .ini l'index 'index' de la colonne triée ainsi que le sens du trie
 void galihydro::sortColumn (int index)
 {
-    QString ascendingChar = QString("\u25B3")+" ";
-    QString descendingChar = QString("\u25BD")+" ";
-
     //Variable globale : fichier ini
     QSettings settings ("GaliHydro.ini", QSettings::IniFormat);
 
+    //Changement du sens de trie pour une meme colonne
     if (settings.value("Sort/Index").toInt()== index){
         if (settings.value("Sort/Order").toInt() == Qt::AscendingOrder){
             ui->StationTable->sortItems(index, Qt::DescendingOrder);
             settings.setValue("Sort/Order",Qt::DescendingOrder);
-
-            QString textheader = ui->StationTable->horizontalHeaderItem(index)->text();
-            textheader.replace(ascendingChar,"");
-            ui->StationTable->horizontalHeaderItem(index)->setText(descendingChar+textheader);
         }
         else if (settings.value("Sort/Order").toInt() == Qt::DescendingOrder){
             ui->StationTable->sortItems(index, Qt::AscendingOrder);
             settings.setValue("Sort/Order",Qt::AscendingOrder);
-
-            QString textheader = ui->StationTable->horizontalHeaderItem(index)->text();
-            textheader.replace(descendingChar,"");
-            ui->StationTable->horizontalHeaderItem(index)->setText(ascendingChar+textheader);
         }
     }
+    //Trie sur une nouvelle colonne
     else {
-        QString textOtherHeader = ui->StationTable->horizontalHeaderItem(settings.value("Sort/Index").toInt())->text();
-        textOtherHeader.replace(ascendingChar,"");
-        textOtherHeader.replace(descendingChar,"");
-        ui->StationTable->horizontalHeaderItem(settings.value("Sort/Index").toInt())->setText(textOtherHeader);
-
         ui->StationTable->sortItems(index, Qt::AscendingOrder);
         settings.setValue("Sort/Order",Qt::AscendingOrder);
-
-        QString textheader = ui->StationTable->horizontalHeaderItem(index)->text();
-        ui->StationTable->horizontalHeaderItem(index)->setText(ascendingChar+textheader);
     }
     settings.setValue("Sort/Index",index);
 }
@@ -831,6 +812,7 @@ void galihydro::setTimeOutDayStatus(bool status)
     timeOutDayStatus = status;
 }
 
+//Modification de la methode d'affichage par emission d'un signal provenant de la fenetre option
 void galihydro::setMethod (processingMethod newMethod)
 {
     method = newMethod;
@@ -935,6 +917,11 @@ void galihydro::loadGroup (QString groupName)
             stations.remove(0,9);
         }
     showStations(group);
+}
+
+void galihydro::openCorth() {
+    corth *corthWindow = new corth (this);
+    corthWindow->show();
 }
 
 galihydro::~galihydro()
